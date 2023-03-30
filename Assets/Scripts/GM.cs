@@ -13,6 +13,7 @@ public class GM : MonoBehaviour {
         int index = Random.Range(0, 16);
         int main, alt;
         main = alt = Random.Range(0, 16);
+        bool face = true;
         List<int> history = new List<int> { index };
         int lim = 100000;
         for (List<int>[] permuations = new List<int>[16]; lim > 0 && history.Count < 16; --lim) {
@@ -24,14 +25,14 @@ public class GM : MonoBehaviour {
             if (0 > index || index >= 16 || Abs(permuations[history.Last()][0] % 2) != Abs(history.Last() % 4 - index % 4) || history.Contains(index)) {
                 (main, alt) = (alt, main);
                 //print(string.Join(", ", history));
-                index = history.Last();
-                permuations[index].RemoveAt(0);
+                index = history[face ? 0 : history.Count - 1];
+                permuations[index].RemoveAt(face ? 0 : history.Count - 1);
                 while (permuations[index].Count == 0) {
-                    history.RemoveAt(history.Count - 1);
-                    index = history.Last();
+                    history.RemoveAt(face ? 0 : history.Count - 1);
+                    index = history[face ? 0 : history.Count - 1];
                 }
             } else
-                history.Add(index);
+                history.Insert(face ? 0 : history.Count - 1, index);
         }
 
         print("done randomizing");
