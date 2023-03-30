@@ -10,33 +10,28 @@ public class GM : MonoBehaviour {
 
     void Start() {
         bool flip = true;
-        int index, alt;
-        index = alt = Random.Range(0, 16);
+        int index;
+        index = Random.Range(0, 16);
         List<int> history = new List<int> { index };
 
         List<int>[] perms = new List<int>[16];
-        List<int>[] yo = new List<int>[16];
-        for (int i = 0; i < 16; ++i) {
+        for (int i = 0; i < 16; ++i)
             perms[i] = new int[] { -4, 1, 4, -1 }.OrderBy(elem => Random.Range(0f, 1f)).ToList();
-            yo[i] = new int[] { -4, 1, 4, -1 }.OrderBy(elem => Random.Range(0f, 1f)).ToList();
-        }
 
         int timer = 0;
-        for (; timer < 100000 && history.Count < 16; ++timer) {
+        for (; history.Count < 16; ++timer) {
             print(timer.ToString() + ": " + history.Count.ToString());
             index += perms[index][0];
             int backup = !flip ? history.Last() : history.First();
             if (0 > index || index >= 16 || Abs(perms[backup][0] % 2) != Abs(backup % 4 - index % 4) || history.Contains(index)) {
                 flip = !flip;
-                (index, alt) = (alt, index);
-                (perms, yo) = (yo, perms);
+                history.Insert(flip ? 0 : history.Count - 1, -1);
 
-                index = flip ? history.First() : history.Last();
-                perms[index].RemoveAt(0);
-                while (perms[index].Count == 0) {
+                do {
                     history.RemoveAt(flip ? 0 : history.Count - 1);
                     index = flip ? history.First() : history.Last();
-                }
+                    perms[index].RemoveAt(0);
+                } while (perms[index].Count == 0);
             } else {
                 if (!flip) history.Add(index);
                 else history.Insert(0, index);
