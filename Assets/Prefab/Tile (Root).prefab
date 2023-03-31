@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4406586376984109388}
   - component: {fileID: 3992924724406366969}
+  - component: {fileID: 5388410230511823845}
   m_Layer: 0
-  m_Name: Tile
+  m_Name: Tile (Root)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,6 +86,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &5388410230511823845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2872480324696040720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4722e54bf60bd524aa4abcc81534d401, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6034092626183918204
 GameObject:
   m_ObjectHideFlags: 0

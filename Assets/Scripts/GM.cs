@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static System.Math;
 
 public class GM : MonoBehaviour {
+    public GameObject player;
     public GameObject[] prefabs;
     private GameObject[] objects = new GameObject[16]; // array of scripts (tile script)?
 
@@ -13,11 +15,11 @@ public class GM : MonoBehaviour {
     }
 
     void Update() {
-        if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown(KeyCode.Space))
             init();
     }
 
-    void init() {
+    private void init() {
         foreach (GameObject elem in objects)
             if (elem != null)
                 Destroy(elem);
@@ -56,10 +58,13 @@ public class GM : MonoBehaviour {
         for (int i = 2; i < 18; ++i) {
             int elem = history[i - 1];
             objects[i - 2] = Instantiate(prefabs[System.Array.IndexOf(table, hash(elem - history[i - 2], history[i] - elem)) / 2], new Vector3(pos[elem % 4], -pos[elem / 4], 0), Quaternion.identity);
+            objects[i - 2].GetComponent<Tile>().init(objects[0]);
         }
+
+        Instantiate(player, objects[0].transform);
     }
 
-    int hash(int x, int y) {
+    private int hash(int x, int y) {
         return 10 * x + y;
     }
 }
