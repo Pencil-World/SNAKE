@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static System.Math;
@@ -8,21 +7,37 @@ using static System.Math;
 public class GM : MonoBehaviour {
     public GameObject player;
     public GameObject[] prefabs;
-    private GameObject[] objects = new GameObject[16]; // array of scripts (tile script)?
+    private Tile[] board = new Tile[16];
+    private int agent;
 
     void Start() {
         init();
     }
 
     void Update() {
+        //if (Input.GetKeyDown(KeyCode.Space) || IsSolved())
+        //    init();
         if (Input.GetKeyDown(KeyCode.Space))
-            init();
+            IsSolved();
+        else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            rotate(-4);
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+            rotate(1);
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+            rotate(4);
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            rotate(-1);
     }
 
+    private int Hash(int backward, int forward) {
+        return 10 * backward + forward;
+    }
+
+    // clockwise or never eat soggy wheat
     private void init() {
-        foreach (GameObject elem in objects)
+        foreach (Tile elem in board)
             if (elem != null)
-                Destroy(elem);
+                Destroy(elem.gameObject);
 
         bool flip = true;
         int index = Random.Range(0, 16);
@@ -33,7 +48,7 @@ public class GM : MonoBehaviour {
         while (history.Count < 16) {
             int backup = index;
             index += perms[index][0];
-            if (0 > index || index >= 16 || Abs(perms[backup][0] % 2) != Abs(backup % 4 - index % 4) || history.Contains(index)) {
+            if (index < 0 || 16 <= index || Abs(perms[backup][0] % 2) != Abs(backup % 4 - index % 4) || history.Contains(index)) {
                 flip = !flip;
                 history.Insert(flip ? 0 : history.Count, -1);
 
@@ -45,26 +60,53 @@ public class GM : MonoBehaviour {
             } else {
                 if (!flip) history.Add(index);
                 else history.Insert(0, index);
-                perms[index] = new int[] { -4, 1, 4, -1 }.OrderBy(elem => Random.Range(0f, 1f)).ToList(); // never eat soggy wheat
+                perms[index] = new int[] { -4, 1, 4, -1 }.OrderBy(elem => Random.Range(0f, 1f)).ToList();
             }
         }
 
         history.Insert(0, history[0]);
         history.Add(history.Last());
         float[] pos = new float[] { -3.75f, -1.25f, 1.25f, 3.75f };
-        int[] table = new int[] {   hash(0, -4), hash(4, 0), hash(0, 1), hash(-1, 0), hash(0, 4), hash(-4, 0), hash(0, -1), hash(1, 0),
-                                    hash(4, 4), hash(-4, -4), hash(1, 1), hash(-1, -1),
-                                    hash(4, 1), hash(-1, -4), hash(-1, 4), hash(-4, 1), hash(-4, -1), hash(1, 4), hash(1, -4), hash(4, -1) };
+        int[] table = new int[] {   Hash(0, -4), Hash(4, 0), Hash(0, 1), Hash(-1, 0), Hash(0, 4), Hash(-4, 0), Hash(0, -1), Hash(1, 0),
+                                    Hash(4, 4), Hash(-4, -4), Hash(1, 1), Hash(-1, -1),
+                                    Hash(4, 1), Hash(-1, -4), Hash(-1, 4), Hash(-4, 1), Hash(-4, -1), Hash(1, 4), Hash(1, -4), Hash(4, -1) };
         for (int i = 2; i < 18; ++i) {
             int elem = history[i - 1];
-            objects[i - 2] = Instantiate(prefabs[System.Array.IndexOf(table, hash(elem - history[i - 2], history[i] - elem)) / 2], new Vector3(pos[elem % 4], -pos[elem / 4], 0), Quaternion.identity);
-            objects[i - 2].GetComponent<Tile>().init(objects[0]);
+            int hash = Hash(elem - history[i - 2], history[i] - elem);
+            board[elem] = Instantiate(prefabs[System.Array.IndexOf(table, hash) / 2], new Vector3(pos[elem % 4], -pos[elem / 4], 0), Quaternion.identity).GetComponent<Tile>();
+            board[elem].init(hash);
         }
 
-        Instantiate(player, objects[0].transform);
+        agent = history[0];
+        Instantiate(player, board[agent].transform);
     }
 
-    private int hash(int x, int y) {
-        return 10 * x + y;
+    private void rotate(int delta) {
+        int initial = Abs(delta) == 1 ? agent / 4 * 4 : agent % 4;
+        List<int> range = Enumerable.Range(0, 4).Select(elem => Abs(elem * Abs(delta) + initial)).ToList();
+        if (0 < delta) range.Reverse();
+        agent = agent == range.First() ? range.Last() : agent + delta;
+
+        range.Add(range[0]);
+        Tile temp = board[range[0]];
+        int prev = range[0];
+        foreach (int index in range.Skip(1)) {
+            board[prev].move(Abs(delta) == 1 ? delta : 0, -delta / 4); // board[prev].move() is necessary. unity multi-threading is crap
+            board[prev] = index == range.Last() ? temp : board[index];
+            prev = index;
+        }
+    }
+
+    private bool IsSolved() {
+        int delta = board[agent].next(0);
+        int index = agent + delta;
+        for (int i = 0; i < 16; ++i) {
+            delta = board[index].next(delta);
+            if (delta == 0) 
+                return false;
+            index += delta;
+        }
+
+        return true;
     }
 }
