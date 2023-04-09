@@ -7,11 +7,23 @@ public class Tile : MonoBehaviour {
 
     public void init(int hash) {
         var (backward, forward) = ReadHash(hash);
-        table.Add(backward, forward);
-        table.Add(-forward, -backward);
-        if (backward != forward) {
-            table.Add(backward - Sign(backward) * 5, 0);
-            table.Add(-forward + Sign(forward) * 5, 0);
+        if (backward == 0) {
+            table.Add(100, forward);
+            backward = forward;
+        } else if (forward == 0) {
+            table.Add(backward, -100);
+            forward = backward;
+        } else {
+            table.Add(backward, forward);
+            table.Add(-forward, -backward);
+        }
+        
+        if (backward == forward) {
+            table.Add(-backward + Sign(backward) * 5, 0);
+            table.Add(forward - Sign(forward) * 5, 0);
+        } else {
+            table.Add(-backward, 0);
+            table.Add(forward, 0);
         }
     }
 
@@ -25,7 +37,7 @@ public class Tile : MonoBehaviour {
     }
 
     private (int, int) ReadHash(int hash) {
-        return (hash / 10, hash % 10);
+        return (hash / 10 - 5, hash % 10 - 5);
     }
 
     public int next(int delta) {

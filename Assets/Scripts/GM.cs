@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -16,9 +17,9 @@ public class GM : MonoBehaviour {
 
     void Update() {
         //if (Input.GetKeyDown(KeyCode.Space) || IsSolved())
-        //    init();
+        //    NewGame();
         if (Input.GetKeyDown(KeyCode.Space))
-            IsSolved();
+            print(IsSolved());
         else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             rotate(-4);
         else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
@@ -30,7 +31,7 @@ public class GM : MonoBehaviour {
     }
 
     private int Hash(int backward, int forward) {
-        return 10 * backward + forward;
+        return 10 * (backward + 5) + (forward + 5);
     }
 
     // clockwise or never eat soggy wheat
@@ -91,22 +92,26 @@ public class GM : MonoBehaviour {
         Tile temp = board[range[0]];
         int prev = range[0];
         foreach (int index in range.Skip(1)) {
-            board[prev].move(Abs(delta) == 1 ? delta : 0, -delta / 4); // board[prev].move() is necessary. unity multi-threading is crap
+            board[prev].move(Abs(delta) == 1 ? delta : 0, -delta / 4); // board[index].move() causes unity errors
             board[prev] = index == range.Last() ? temp : board[index];
             prev = index;
         }
     }
 
     private bool IsSolved() {
-        int delta = board[agent].next(0);
-        int index = agent + delta;
+        int delta = 100, index = agent;
         for (int i = 0; i < 16; ++i) {
             delta = board[index].next(delta);
-            if (delta == 0) 
-                return false;
             index += delta;
+            if (delta != -100 && (delta == 0 || index < 0 || 16 <= index || Abs(delta) != Abs((index - delta) % 4 - index % 4)))
+                return false;
         }
 
         return true;
+    }
+
+    private IEnumerator NewGame() {
+        yield return new WaitForSeconds(3);
+        init();
     }
 }
