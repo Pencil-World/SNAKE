@@ -19,7 +19,7 @@ public class GM : MonoBehaviour {
     private bool pause = true;
     private bool DevMode = false;
 
-    void Start() {
+    private void Start() {
         GameObject.Find("Best").transform.position = new Vector2(-7, 0);
         GameObject.Find("Time").transform.position = new Vector2(7, 0);
     }
