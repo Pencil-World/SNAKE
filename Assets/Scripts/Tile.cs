@@ -7,23 +7,22 @@ public class Tile : MonoBehaviour {
 
     public void init(int hash) {
         var (backward, forward) = ReadHash(hash);
+        table[-backward] = 0;
+        table[forward] = 0;
         if (backward == 0) {
-            table.Add(100, forward);
+            table[100] = forward;
             backward = forward;
         } else if (forward == 0) {
-            table.Add(backward, -100);
+            table[backward] = -100;
             forward = backward;
         } else {
-            table.Add(backward, forward);
-            table.Add(-forward, -backward);
+            table[backward] = forward;
+            table[-forward] = -backward;
         }
         
         if (backward == forward) {
-            table.Add(-backward + Sign(backward) * 5, 0);
-            table.Add(forward - Sign(forward) * 5, 0);
-        } else {
-            table.Add(-backward, 0);
-            table.Add(forward, 0);
+            table[-backward + Sign(backward) * 5] = 0;
+            table[forward - Sign(forward) * 5] = 0;
         }
     }
 
